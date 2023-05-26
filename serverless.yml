@@ -1,0 +1,63 @@
+service: dio-serverless-api
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: eu-west-2
+  iam:
+      role:
+          statements:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:GetItem
+                - dynamodb:Scan
+              Resource:
+                - arn:aws:dynamodb:eu-west-2:400780769600:table/MoviesTableNew
+
+functions:
+  api:
+    handler: src/index.handler
+    events:
+      - httpApi:
+          path: /
+          method: get
+  insertMovie:
+    handler: src/insertMovie.handler
+    events:
+      - http:
+          path: /movie
+          method: post
+  fetchMovies:
+      handler: src/fetchMovies.handler
+      events:
+        - http:
+            path: /movie
+            method: get
+  fetchMovie:
+    handler: src/fetchMovie.handler
+    events:
+      - http:
+          path: /movie/{id}
+          method: get
+  updateMovie:
+    handler: src/updateMovie.handler
+    events:
+      - http:
+          path: /movie/{id}
+          method: put
+resources:
+  Resources:
+    ItemTable: 
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: MoviesTableNew
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
